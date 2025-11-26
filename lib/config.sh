@@ -5,17 +5,13 @@
 # =========================================
 
 readonly CONFIG_FILE="release-config.json"
-readonly DEFAULT_CONFIG='{}'
-
-if ! command -v jq &> /dev/null; then
-    log_fatal "Command \"jq\" not found"
-fi
-
-# =========================================
-#           CONFIG FUNCTIONS
-# =========================================
+readonly DEFAULT_CONFIG='{"github": {"active": true}}'
 
 setup_config() {
+    if ! command -v jq &> /dev/null; then
+        log_fatal "Command \"jq\" not found. It is required for configuration parsing."
+    fi
+
     if [[ -f "$CONFIG_FILE" ]]; then
         CONFIG_CONTENT=$(< "$CONFIG_FILE")
     else
@@ -25,6 +21,20 @@ setup_config() {
 }
 
 get_config_value() {
-    local key="$1"  # e.g., "repository.url"
-    echo "$CONFIG_CONTENT" | jq -r --arg key "$key" '.[$key] // empty'
+    local key="$1"
+    echo "$CONFIG_CONTENT" | jq -r --arg path "$key" 'getpath($path | split(".")) // empty'
+}
+
+check_github_active() {
+    local github_exists=$(get_config_value "github")
+
+    if [[ -n "$github_exists" && "$github_exists" != "null" ]]; then
+        local is_active=$(get_config_value "github.active")
+
+        if [[ "$is_active" == "true" ]]; then
+            return 0 # True
+        fi
+    fi
+
+    return 1 # False
 }

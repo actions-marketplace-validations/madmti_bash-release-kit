@@ -41,3 +41,12 @@ setup_git_user
 create_release_commit "$NEW_TAG"
 
 log_success "Release $NEW_TAG created successfully!"
+
+if check_github_active; then
+    source "$SCRIPT_DIR/lib/platforms/github.sh"
+
+    log_info "Creating GitHub release..."
+    check_gh_cli
+    create_gh_release "$NEW_TAG" "$COMMITS"
+    log_success "GitHub release $NEW_TAG created successfully!"
+fi
