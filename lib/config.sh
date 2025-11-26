@@ -3,8 +3,7 @@
 # =========================================
 #               CONFIGURATION
 # =========================================
-
-readonly CONFIG_FILE="release-config.json"
+readonly CONFIG_FILE="${CONFIG_FILE_PATH:-release-config.json}"
 readonly DEFAULT_CONFIG='{"github": {"active": true}}'
 
 setup_config() {
