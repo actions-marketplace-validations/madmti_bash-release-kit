@@ -1,3 +1,9 @@
+# v1.0.1 (2025-11-27)
+
+### Bug Fixes
+
+- args warning for setup_git_user detected by shellcheck
+
 # v1.0.0 (2025-11-27)
 
 ### ⚠ BREAKING CHANGES
