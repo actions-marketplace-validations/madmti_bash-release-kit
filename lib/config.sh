@@ -49,7 +49,7 @@ check_github_active() {
     local github_exists=$(get_config_value "github")
 
     if [[ -n "$github_exists" && "$github_exists" != "null" ]]; then
-        local is_active=$(get_config_value "github.active")
+        local is_active=$(get_config_value "github.enable")
 
         if [[ "$is_active" == "true" ]]; then
             return 0 # True
