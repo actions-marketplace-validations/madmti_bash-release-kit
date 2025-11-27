@@ -38,15 +38,25 @@ log_info "Bump type: $BUMP_TYPE"
 log_info "Changing version from $LAST_TAG to $NEW_TAG"
 
 RELEASE_NOTES=$(get_notes "$COMMITS")
-# Release notes are not written to a file yet
-# write_changelog "$NEW_TAG" "$RELEASE_NOTES"
+
+if check_changelog_enable; then
+    CHANGELOG_PATH=$(get_changelog_output)
+    write_changelog "$NEW_TAG" "$RELEASE_NOTES" "$CHANGELOG_PATH"
+    log_success "Changelog updated at $CHANGELOG_PATH"
+else
+    log_info "Changelog generation is disabled."
+fi
 
 setup_git_user
 create_release_commit "$NEW_TAG"
 
 log_success "Release $NEW_TAG created successfully!"
 
-if check_github_active; then
+# =========================================
+#               Platforms
+# =========================================
+
+if check_github_enable; then
     source "$SCRIPT_DIR/lib/platforms/github.sh"
 
     log_info "Creating GitHub release..."

@@ -45,7 +45,7 @@ get_config_value() {
 #       SPECIFIC CONFIG TOOLS
 # =========================================
 
-check_github_active() {
+check_github_enable() {
     local github_exists=$(get_config_value "github")
 
     if [[ -n "$github_exists" && "$github_exists" != "null" ]]; then
@@ -66,5 +66,25 @@ get_commit_types() {
         echo "$custom_types"
     else
         echo "$DEFAULT_COMMIT_TYPES"
+    fi
+}
+
+check_changelog_enable() {
+    local is_enabled=$(get_config_value "changelog.enable")
+
+    if [[ "$is_enabled" == "false" ]]; then
+        return 1
+    else
+        return 0 # Default
+    fi
+}
+
+get_changelog_output() {
+    local output_path=$(get_config_value "changelog.output")
+
+    if [[ -z "$output_path" || "$output_path" == "null" ]]; then
+        echo "CHANGELOG.md"
+    else
+        echo "$output_path"
     fi
 }

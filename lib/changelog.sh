@@ -52,23 +52,23 @@ get_notes() {
 write_changelog() {
     local version="$1"
     local notes="$2"
+    local output_file="$3"
     local date=$(date +%Y-%m-%d)
 
-    log_info "Writing changelog to $CHANGELOG_FILE"
+    log_info "Writing changelog to $output_file"
 
     local temp_file="TEMP_CHANGELOG.md"
 
     echo "# $version ($date)" > "$temp_file"
     echo "" >> "$temp_file"
-
     echo "$notes" >> "$temp_file"
     echo "" >> "$temp_file"
 
-    if [[ -f "$CHANGELOG_FILE" ]]; then
-        cat "$CHANGELOG_FILE" >> "$temp_file"
+    if [[ -f "$output_file" ]]; then
+        cat "$output_file" >> "$temp_file"
     fi
 
-    mv "$temp_file" "$CHANGELOG_FILE"
+    mv "$temp_file" "$output_file"
 
-    git add "$CHANGELOG_FILE"
+    git add "$output_file"
 }
