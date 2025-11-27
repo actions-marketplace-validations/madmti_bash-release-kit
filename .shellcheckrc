@@ -1,0 +1,8 @@
+# ShellCheck configuration
+shell=bash
+
+# Disable specific style warnings that are acceptable for this project
+# SC2155: Declare and assign separately (readability preference)
+# SC2034: Variable appears unused (used in different contexts)
+# SC2129: Individual redirects (readability preference)
+disable=SC2155,SC2034,SC2129
