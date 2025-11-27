@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
 
-# For package.json and other JSON files that have a "version" field at root level
+_is_safe_path() {
+    local path="$1"
+    if [[ "$path" == /* ]] || [[ "$path" == *"../"* ]] || [[ "$path" == "../"* ]]; then
+        return 1 # Unsafe
+    fi
+    return 0 # Safe
+}
+
 _update_json() {
     local file="$1"
     local version="$2"
-
-    # Usamos un archivo temporal para escribir el cambio
     jq --arg v "$version" '.version = $v' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
 }
 
-# For Python files with a __version__ variable
 _update_python() {
     local file="$1"
     local version="$2"
-
-    # Change the line that defines __version__
-    sed -i "s/^__version__ = .*/__version__ = \"$version\"/" "$file"
+    sed -i "s#^__version__ = .*#__version__ = \"$version\"#" "$file"
 }
 
-# For custom regex patterns provided in the config
 _update_custom() {
     local file="$1"
     local version="$2"
@@ -29,7 +30,11 @@ _update_custom() {
         return
     fi
 
-    # Replace %VERSION% placeholder with actual version
+    if [[ "$pattern" =~ s/.*/.*/.*[ew].* ]]; then
+        log_error "SECURITY ERROR: The regex pattern contains unsafe flags ('e' or 'w'). Operation aborted for $file"
+        return
+    fi
+
     local sed_cmd=${pattern//%VERSION%/$version}
 
     sed -i "$sed_cmd" "$file"
@@ -37,11 +42,15 @@ _update_custom() {
 
 run_updaters() {
     local new_version="$1"
-
     local targets_json=$(get_config_value "targets")
 
     if [[ -z "$targets_json" || "$targets_json" == "null" ]]; then
         log_info "No file updates configured."
+        return
+    fi
+
+    if [[ ! "$new_version" =~ ^[0-9a-zA-Z\.\-]+$ ]]; then
+        log_error "SECURITY ERROR: Invalid version format '$new_version'. Aborting updates."
         return
     fi
 
@@ -50,7 +59,12 @@ run_updaters() {
     echo "$targets_json" | jq -c '.[]' | while read -r target; do
         local path=$(echo "$target" | jq -r '.path')
         local type=$(echo "$target" | jq -r '.type')
-        local pattern=$(echo "$target" | jq -r '.pattern // empty') # Only for custom-regex
+        local pattern=$(echo "$target" | jq -r '.pattern // empty')
+
+        if ! _is_safe_path "$path"; then
+             log_error "SECURITY WARNING: Path '$path' is trying to escape the repository. Skipping."
+             continue
+        fi
 
         if [[ ! -f "$path" ]]; then
             log_warning "File not found: $path. Skipping."
