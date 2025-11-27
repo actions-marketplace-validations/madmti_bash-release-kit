@@ -1,13 +1,63 @@
 #!/usr/bin/env bash
+#
+# Git Operations Module
+#
+# Provides functions for Git repository operations including tag retrieval,
+# commit analysis, and release management. Handles both new repositories
+# (without tags) and existing repositories with version history.
+#
+# Functions:
+#   Read Operations:
+#     - get_last_tag()       Get the most recent Git tag or default
+#     - get_commits_since()  Get commit messages since specified tag
+#     - get_current_hash()   Get current commit hash (short format)
+#   
+#   Write Operations:
+#     - setup_git_user()        Configure Git user for commits
+#     - has_staged_changes()    Check if there are staged changes
+#     - create_release_commit() Create release commit and tag
+#
+# Dependencies:
+#   - git command
+#   - log.sh (for logging functions)
 
 # =========================================
 #               READ FUNCTIONS
 # =========================================
 
+#######################################
+# Get the most recent Git tag from the repository
+# Retrieves the latest annotated or lightweight tag. Falls back to v0.0.0
+# for repositories without any tags (initial release scenario).
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   Writes tag name to stdout (e.g., "v1.2.3" or "v0.0.0")
+# Returns:
+#   0 always (uses fallback for error cases)
+#######################################
 get_last_tag() {
     git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
 }
 
+#######################################
+# Get commit messages since specified tag
+# Retrieves all commit messages between the specified tag and HEAD.
+# Handles special case where no previous tags exist (v0.0.0).
+# Globals:
+#   None
+# Arguments:
+#   $1: last_tag - Git tag to start from (e.g., "v1.2.3" or "v0.0.0")
+# Outputs:
+#   Writes commit messages to stdout, one per line (subject only)
+# Returns:
+#   0 on success, non-zero on git failure
+# Special Cases:
+#   - If last_tag is "v0.0.0", returns all commits from HEAD
+#   - Empty output if no commits since tag
+#######################################
 get_commits_since() {
     local last_tag="$1"
 
@@ -17,6 +67,19 @@ get_commits_since() {
         git log "${last_tag}..HEAD" --pretty=format:"%s"
     fi
 }
+#######################################
+# Get current commit hash in short format
+# Retrieves the abbreviated hash of the current HEAD commit.
+# Useful for debugging and logging purposes.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   Writes short commit hash to stdout (e.g., "a1b2c3d")
+# Returns:
+#   0 on success, non-zero if not in git repository
+#######################################
 get_current_hash() {
     git rev-parse --short HEAD
 }
@@ -25,6 +88,20 @@ get_current_hash() {
 #               WRITE FUNCTIONS
 # =========================================
 
+#######################################
+# Configure Git user identity for commits
+# Sets up Git user.name and user.email configuration for the current
+# repository. Uses sensible defaults for CI environments.
+# Globals:
+#   None
+# Arguments:
+#   $1: name - Git user name (optional, default: "GitHub Actions")
+#   $2: email - Git user email (optional, default: "actions@github.com")
+# Outputs:
+#   None
+# Returns:
+#   0 on success, non-zero on git config failure
+#######################################
 setup_git_user() {
     local name="${1:-GitHub Actions}"
     local email="${2:-actions@github.com}"
@@ -32,10 +109,42 @@ setup_git_user() {
     git config user.email "$email"
 }
 
+#######################################
+# Check if there are staged changes in the Git index
+# Determines whether there are any files staged for commit.
+# Used to decide if a release commit needs to be created.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   None
+# Returns:
+#   0 if there are staged changes, 1 if staging area is clean
+#######################################
 has_staged_changes() {
     ! git diff --cached --quiet
 }
 
+#######################################
+# Create release commit and tag, then push to remote
+# Creates a release commit with all staged changes, creates a Git tag,
+# and pushes both the commit and tag to the remote repository.
+# Only commits if there are staged changes to avoid empty commits.
+# Globals:
+#   None
+# Arguments:
+#   $1: version_tag - Git tag name to create (e.g., "v1.2.3")
+# Outputs:
+#   Info message if no changes to commit
+#   Git command output to stdout/stderr
+# Returns:
+#   0 on success, non-zero on git operation failure
+# Side Effects:
+#   - Creates commit with staged changes (if any)
+#   - Creates annotated or lightweight tag
+#   - Pushes current branch and all tags to origin
+#######################################
 create_release_commit() {
     local version_tag="$1"  # e.g., "v1.2.3"
     local message="chore: release $version_tag"

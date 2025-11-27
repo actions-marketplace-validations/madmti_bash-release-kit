@@ -1,4 +1,37 @@
 #!/usr/bin/env bash
+#
+# Bash Release Kit - Main Release Script
+#
+# Description: Zero-dependency semantic release automation tool for Git repositories.
+#              Analyzes commit history based on conventional commits, creates Git tags,
+#              generates changelogs, publishes GitHub releases, and updates version
+#              numbers in specified files (npm, python, text, etc).
+#
+# Author: MADMTI
+# Repository: https://github.com/madmti/release-kit
+# License: See LICENSE file (MIT)
+#
+# Usage: ./release.sh
+#
+# Environment Variables:
+#   CONFIG_FILE_PATH - Path to configuration file (default: release-config.json)
+#   GITHUB_TOKEN     - GitHub token for creating releases (required for GitHub integration)
+#   DEBUG           - Enable debug logging (true/false, default: false)
+#
+# Dependencies:
+#   - jq           (required for JSON configuration parsing)
+#   - git          (required for repository operations)
+#   - gh           (optional, required only for GitHub releases)
+#
+# Exit Codes:
+#   0 - Success
+#   1 - General error (missing dependencies, configuration issues)
+#   2 - No new commits since last tag (informational exit)
+#
+# Security Notes:
+#   - Validates all file paths to prevent directory traversal
+#   - Sanitizes regex patterns to prevent code injection
+#   - Uses safe git operations with proper user validation
 
 # ======================================== #
 #                   INIT
@@ -15,23 +48,31 @@ source "$SCRIPT_DIR/lib/updaters.sh"
 # ======================================== #
 #               Workflow
 # ======================================== #
+
+# Initialize the release process
 log_info "<< Bash Release Kit [$KIT_VERSION] >>"
+
+# Step 1: Load and validate configuration
 setup_config
 
+# Step 2: Determine the last release tag in the repository
 LAST_TAG=$(get_last_tag)
 log_info "Last tag: $LAST_TAG"
 
+# Step 3: Get all commits since the last tag
 COMMITS=$(get_commits_since "$LAST_TAG")
 if [[ -z "$COMMITS" ]]; then
     log_info "No new commits since last tag. Exiting."
     exit 0
 fi
 
+# Step 4: Display commits for transparency
 log_info "Commits since last tag:"
 while IFS= read -r line; do
     log_info "  - $line"
 done <<< "$COMMITS"
 
+# Step 5: Analyze commit messages to determine version bump type
 BUMP_TYPE=$(get_bump_type "$COMMITS")
 NEXT_VERSION=$(calculate_next_version "$LAST_TAG" "$BUMP_TYPE")
 NEW_TAG="v$NEXT_VERSION"
@@ -39,8 +80,10 @@ NEW_TAG="v$NEXT_VERSION"
 log_info "Bump type: $BUMP_TYPE"
 log_info "Changing version from $LAST_TAG to $NEW_TAG"
 
+# Step 6: Generate release notes from commit messages
 RELEASE_NOTES=$(get_notes "$COMMITS")
 
+# Step 7: Update local changelog file (if enabled)
 if check_changelog_enable; then
     CHANGELOG_PATH=$(get_changelog_output)
     write_changelog "$NEW_TAG" "$RELEASE_NOTES" "$CHANGELOG_PATH"
@@ -49,21 +92,27 @@ else
     log_info "Changelog generation is disabled."
 fi
 
+# Step 8: Update version numbers in project files
 run_updaters "$NEW_TAG"
 
+# Step 9: Create release commit and tag
 setup_git_user
 create_release_commit "$NEW_TAG"
 
 log_success "Release $NEW_TAG created successfully!"
 
 # =========================================
-#               Platforms
+#               Platform Integration
 # =========================================
 
+# Step 10: Publish to external platforms (GitHub, etc.)
 if check_github_enable; then
     source "$SCRIPT_DIR/lib/platforms/github.sh"
 
+    # Verify GitHub CLI is available
     check_gh_cli
+
+    # Create GitHub release with generated notes
     create_gh_release "$NEW_TAG" "$RELEASE_NOTES"
     log_success "GitHub release $NEW_TAG created successfully!"
 fi
