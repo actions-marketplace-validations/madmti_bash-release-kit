@@ -12,12 +12,12 @@
             "type": "object",
             "description": "GitHub related configuration settings.",
             "properties": {
-                "active": {
+                "enable": {
                     "type": "boolean",
-                    "description": "Indicates whether GitHub integration is active."
+                    "description": "Indicates whether GitHub integration is enabled."
                 }
             },
-            "required": ["active"]
+            "required": ["enable"]
         },
         "commitTypes": {
             "type": "array",
@@ -47,6 +47,23 @@
                     }
                 }
             }
+        },
+        "changelog": {
+            "type": "object",
+            "description": "Changelog generation settings.",
+            "properties": {
+                "enable": {
+                    "type": "boolean",
+                    "description": "Indicates whether Changelog generation is enabled.",
+                    "default": true
+                },
+                "output": {
+                    "type": "string",
+                    "description": "Path where the generated Changelog will be saved.",
+                    "default": "CHANGELOG.md"
+                }
+            },
+            "required": []
         }
     },
     "required": []
