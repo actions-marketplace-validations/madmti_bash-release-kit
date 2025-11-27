@@ -60,6 +60,7 @@ For cleaner logs when using PAT tokens, add this condition to your workflow:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: Production
     # LOOP PREVENTION: Skip if triggered by release commits
     if: github.event.head_commit.author.name != 'GitHub Actions'
     steps:
