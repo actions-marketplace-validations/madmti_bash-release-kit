@@ -54,7 +54,7 @@ Add the `$schema` property to your JSON file to get autocompletion and validatio
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/madmti/release-kit/main/release-schema.json",
+  "$schema": "https://raw.githubusercontent.com/madmti/bash-release-kit/main/release-schema.json",
   "github": {
     "enable": true
   }
@@ -174,7 +174,7 @@ Contributions are welcome to Bash Release Kit! This section will help you get st
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/release-kit.git
+   git clone https://github.com/yourusername/bash-release-kit.git
    cd release-kit
    ```
 
