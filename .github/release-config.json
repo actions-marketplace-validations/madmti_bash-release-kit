@@ -1,0 +1,12 @@
+{
+    "$schema": "https://raw.githubusercontent.com/madmti/release-kit/main/release-schema.json",
+    "github": {
+        "enable": true
+    },
+    "targets": [
+        {
+            "path": "VERSION",
+            "type": "text"
+        }
+    ]
+}
