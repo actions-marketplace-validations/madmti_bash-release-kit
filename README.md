@@ -61,7 +61,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     # LOOP PREVENTION: Skip if triggered by release commits
-    if: github.actor != 'YOUR-PAT-USERNAME'
+    if: github.event.head_commit.author.name != 'GitHub Actions'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -74,8 +74,6 @@ jobs:
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
 ```
-
-Replace `YOUR-PAT-USERNAME` with the username of the account whose PAT you're using.
 
 **Recommendation**: Use `secrets.GITHUB_TOKEN` when possible as it doesn't trigger workflow runs for its own commits, eliminating the need for loop prevention.
 
