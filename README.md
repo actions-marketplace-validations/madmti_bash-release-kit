@@ -140,6 +140,30 @@ Customize how different commit types affect the versioning and the Changelog sec
   * **bump**: `major`, `minor`, `patch`, or `none`.
   * **hidden**: If `true`, these commits won't appear in the Changelog.
 
+### 4\. Floating Tags (Maintenance)
+
+Keep your consumers up-to-date automatically by maintaining floating tags that always point to the latest stable releases.
+
+```json
+"floatingTags": {
+  "latest": true,  // Updates the 'latest' tag to point to this release
+  "majors": true   // Updates 'v1', 'v2', etc. to point to this release
+}
+```
+
+**Use Cases:**
+- **GitHub Actions**: Users can reference `uses: owner/repo@v1` to always get the latest v1.x.x
+- **Docker**: Tags like `latest` automatically point to newest stable version
+- **Documentation**: Simplified references without specifying exact versions
+
+**Security Considerations:**
+- **Force Push Warning**: Enabling this performs `git push --force` on specific tags
+- **Default**: Both options are `false` by default for safety
+- **Recommendation**: Enable only in repositories you control completely
+
+**Technical Note:**
+The tool creates floating tags but ignores them when calculating the next version. It uses `git describe --match "v*.*.*"` to ensure the next version is always calculated based on precise Semantic Version tags (e.g., `v1.2.3`) and never on floating tags (e.g., `v1`).
+
 -----
 
 ## Versioning Rules
