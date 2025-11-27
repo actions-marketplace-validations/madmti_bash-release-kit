@@ -12,14 +12,6 @@
 
 # v1.0.1 (2025-11-27)
 
-
-
-# v1.0.1 (2025-11-27)
-
-
-
-# v1.0.1 (2025-11-27)
-
 ### Bug Fixes
 
 - args warning for setup_git_user detected by shellcheck
@@ -50,4 +42,3 @@
 - strip commit prefix in changelog
 - remove trailing backslash in gh release func
 - give release.sh +x rights
-
