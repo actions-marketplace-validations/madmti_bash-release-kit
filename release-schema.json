@@ -63,7 +63,7 @@
                     "default": "CHANGELOG.md"
                 }
             },
-            "required": []
+            "required": ["enable"]
         }
     },
     "required": []
